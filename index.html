@@ -196,7 +196,7 @@
 
             /* 指定幾頁標題靠左（有驚嘆號那幾頁） */
             .step[data-page="1"] h2, .step[data-page="2"] h2, .step[data-page="3"] h2,
-            .step[data-page="4"] h2, .step[data-page="5"] h2, .step[data-page="7"] h2, .step[data-page="8"] h2 {
+            .step[data-page="4"] h2, .step[data-page="5"] h2 {
                 text-align: left !important;
             }
 
@@ -726,6 +726,7 @@
                     <label for="addrHouse">© 戶籍地址 <small>⏍ 可查看身分證背面,包含里及鄰都須填寫</small></label>
                     <input id="addrHouse" type="text" placeholder="請輸入戶籍地址" />
                 </div>
+                    
                 <div class="row">
                     <label for="addrLive">© 居住地址 <small>⏍ 勿填寫同戶籍地</small></label>
                     <input id="addrLive" type="text" placeholder="請輸入居住地址" />
@@ -883,14 +884,14 @@
 
 <script>
     /* --------系統常數-------- */
-    const TOTAL_STEPS = 7;  /* 總頁數 7 頁 */
+    const TOTAL_STEPS = 7;
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
     /* ★★★ GAS部署網址 WEBHOOK ★★★ */
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwu0P8AT0XxMJGb7SpL13x1v_1nY8SCicIt1JhdN2PBHqCudUi3gtmNxcWcwygXlqdH/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzydITCB9S3f60g2g-C-JpxxLa89YYi1qJ5mhxLVxUiC3BvAADJgNU4GUSNBBU3vuXL/exec";
 
-    /* 表單時間戳（建立/更新） */
+    /* 表單時間戳 */
     const FORM_META = { createdAt: null, updatedAt: null };
     function fmtTW(d) {
         try {
@@ -957,24 +958,20 @@
         });
     })();
 
-    /* ====== 鍵盤與縮放控制（iOS） ====== */
+    /* ====== 鍵盤與縮放控制 ====== */
     (function keyboardLift() {
         const vv = window.visualViewport;
         if (!vv) return;
-
         function apply() {
             const bottomInset = (window.innerHeight - vv.height - vv.offsetTop);
             document.documentElement.style.setProperty('--kv-offset', bottomInset > 0 ? `${bottomInset}px` : '0px');
-
             if (bottomInset > 80) {
                 document.body.classList.add('kb-open');
             } else {
                 document.body.classList.remove('kb-open');
             }
-
             autoFitActionbarHeight();
         }
-
         vv.addEventListener('resize', apply);
         vv.addEventListener('scroll', apply);
         window.addEventListener('resize', apply);
@@ -990,12 +987,10 @@
         });
     })();
 
-    /* ====== 步驟顯示與背景配色 ====== */
+    /* ====== 步驟顯示 ====== */
     let currentPage = 1;
     let IS_LOCKED = false;
     function pad2(n) { return String(n).padStart(2, '0'); }
-
-    /* 指定頁為紫色：1, 7 ；其餘黑色 */
     function pageIsPurple(n) { return [1, 7].includes(n); }
 
     function updateHeaderStep() {
@@ -1014,15 +1009,13 @@
 
     function showStep(pageNumber) {
         if (IS_LOCKED && pageNumber !== TOTAL_STEPS) return;
-
         $$(".step").forEach(s => s.classList.remove("active"));
         const el = document.getElementById(`step-${pageNumber}`);
         if (el) el.classList.add("active");
-
         currentPage = pageNumber;
         updateHeaderStep();
         $("#content").scrollTo({ top: 0, behavior: "instant" });
-        updateNavState();
+        updateNavState(); /* 換頁後立刻檢查按鈕狀態 */
 
         if (pageNumber === TOTAL_STEPS) {
             setUpdatedNow();
@@ -1030,7 +1023,7 @@
         }
     }
 
-    /* ====== 第 5 頁檔案預覽（PDF、圖片皆可） ====== */
+    /* ====== 檔案預覽 ====== */
     function bindFilePreview(inputId, txtId, thumbId) {
         const input = $(inputId);
         const txt = $(txtId);
@@ -1038,22 +1031,18 @@
 
         input?.addEventListener("change", () => {
             const file = input.files[0];
-
             if (!file) {
                 txt.textContent = "尚未選取檔案";
                 thumb.style.display = "none";
                 thumb.src = "";
                 return;
             }
-
             txt.textContent = file.name;
-
             if (file.type === "application/pdf") {
                 thumb.src = "https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg";
                 thumb.style.display = "block";
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 thumb.src = e.target.result;
@@ -1062,129 +1051,167 @@
             reader.readAsDataURL(file);
         });
     }
-
     bindFilePreview("#idFront", "#nameFrontTxt", "#thumbFront");
-    /* 注意：此處 idLaborCheck 在 HTML 中是對應到「身分證背面」，idFoodCheck 對應「匯款存摺」 */
     bindFilePreview("#idLaborCheck", "#nameLaborCheckTxt", "#thumbLaborCheck");
     bindFilePreview("#idFoodCheck", "#nameFoodCheckTxt", "#thumbFoodCheck");
 
-
-    /* ====== ★★★ 各頁驗證邏輯（修正版） ★★★ ====== */
-    function validatePage(n, submit = false) {
+    /* ====== ★★★ 各頁驗證邏輯 (檢查用) ★★★ ====== */
+    function validatePage(n) {
+        /* 這裡只回傳 true/false，不負責顯示紅字，紅字由 bindLiveValidation 負責 */
         switch (n) {
-
-            /* ------ 第1頁：注意事項 ------ */
             case 1: {
                 const yes = $('input[name="agree1"][value="yes"]')?.checked;
-                const no = $('input[name="agree1"][value="no"]')?.checked;
-                $("#exitMsg1").classList.toggle("show", !!no);
                 return !!yes;
             }
-
-            /* ------ 第2頁：基本資料-1 (全必填) ------ */
             case 2: {
                 const a = $("#company").value !== "";
                 const b = $("#team").value !== "";
                 const c = $("#workType").value !== "";
-                const d = $("#gmail").value.trim() !== "";
+                const d = $("#gmail").value.includes("@gmail.com"); /* 簡易檢查 */
                 const e = $("#fullName").value.trim() !== "";
                 const f = $("#gender").value !== "";
-                
-                if (submit) {
-                     $("#errGmail").style.display = !d ? "block" : "none";
-                     $("#errFullName").style.display = !e ? "block" : "none";
-                }
                 return a && b && c && d && e && f;
             }
-
-            /* ------ 第3頁：基本資料-2 (全必填) ------ */
             case 3: {
-                const a = $("#nid").value.trim() !== "";
-                const b = $("#birthRoc7").value.trim() !== "";
-                const c = $("#mobile").value.trim() !== "";
+                const a = /^[A-Z][0-9]{9}$/.test($("#nid").value.toUpperCase()); /* 身分證正則 */
+                const b = /^\d{7}$/.test($("#birthRoc7").value); /* 7碼生日 */
+                const c = /^09\d{2}-\d{3}-\d{3}$/.test($("#mobile").value); /* 手機格式 */
                 const d = $("#birthPlace").value.trim() !== "";
                 const e = $("#addrHouse").value.trim() !== "";
                 const f = $("#addrLive").value.trim() !== "";
-                
-                if (submit) {
-                    $("#errNid").style.display = !a ? "block" : "none";
-                    $("#errBirthRoc7").style.display = !b ? "block" : "none";
-                    $("#errMobile").style.display = !c ? "block" : "none";
-                }
                 return a && b && c && d && e && f;
             }
-
-            /* ------ 第4頁：上傳檔案同意 ------ */
             case 4: {
-                const yes = $(`input[name="agreeUpload"][value="yes"]`).checked;
-                const no = $(`input[name="agreeUpload"][value="no"]`).checked;
-
-                if (no) $("#errAgreeUpload").style.display = "block";
-                if (yes) $("#errAgreeUpload").style.display = "none";
-                if (!yes && submit) $("#errAgreeUpload").style.display = "block";
-
-                return yes;
+                return $(`input[name="agreeUpload"][value="yes"]`).checked;
             }
-
-            /* ------ 第5頁：檔案上傳 (3個檔案 + 4個Check 都必選) ------ */
             case 5: {
                 const f1 = $("#idFront").files.length > 0;
                 const f2 = $("#idLaborCheck").files.length > 0;
                 const f3 = $("#idFoodCheck").files.length > 0;
                 const checks = ["#fileChk1", "#fileChk2", "#fileChk3", "#fileChk4"].every(id => $(id).checked);
-                
                 return f1 && f2 && f3 && checks;
             }
-
-            /* ------ 第6頁：提交前核檢 (6個Check 都必選) ------ */
             case 6:
-                return ["#preA", "#preB", "#preC", "#preD", "#preE", "#preF"].every(
-                    (id) => $(id).checked
-                );
-
-            /* ------ 第7頁：完成頁 ------ */
+                return ["#preA", "#preB", "#preC", "#preD", "#preE", "#preF"].every(id => $(id).checked);
             case 7:
                 return true;
         }
         return false;
     }
 
-    /* ====== 底部操作列：狀態控制 ====== */
+    /* ====== 導航按鈕狀態 (控制下一頁出現/隱藏) ====== */
     function updateNavState() {
-        const btnPrev = $("#btnPrev"),
-            btnNext = $("#btnNext");
-
+        const btnPrev = $("#btnPrev"), btnNext = $("#btnNext");
         const onLast = currentPage === TOTAL_STEPS;
+        const isValid = validatePage(currentPage); /* 檢查當前頁面是否全對 */
 
-        /* 上一頁按鈕 */
+        /* 上一頁 */
         if (btnPrev) {
             btnPrev.disabled = IS_LOCKED || currentPage <= 1;
             btnPrev.style.display = onLast ? "none" : "inline-block";
         }
 
-        /* 下一頁按鈕 */
+        /* 下一頁 */
         if (btnNext) {
-            /* 在第 6 頁 (提交頁) 隱藏下一頁按鈕，改由畫面中的提交按鈕控制 */
-            if (currentPage === 6) {
-                btnNext.style.display = "none";
+            if (currentPage === 6 || onLast) {
+                btnNext.style.display = "none"; /* 第6頁改用提交鈕，第7頁隱藏 */
             } else {
-                btnNext.style.display = onLast ? "none" : "inline-block";
+                /* ★★★ 關鍵：沒填好 -> 隱藏 (none)，填好 -> 出現 (inline-block) ★★★ */
+                btnNext.style.display = isValid ? "inline-block" : "none";
             }
-
-            /* 驗證頁面 */
-            const validNow = validatePage(currentPage, false);
-            let disabled = IS_LOCKED || !validNow;
-            btnNext.disabled = disabled;
         }
 
-        /* 第 6 頁專屬提交按鈕控制 */
+        /* 第 6 頁提交按鈕 */
         if (currentPage === 6) {
             const btnSubmit = $("#btnSubmit");
-            const valid6 = validatePage(6, false);
             if (btnSubmit) {
-                btnSubmit.disabled = !valid6;
+                btnSubmit.disabled = !isValid; /* 提交按鈕維持禁用/啟用邏輯，不隱藏 */
             }
         }
+    }
+
+    /* ====== ★★★ 即時紅字驗證 (輸入當下就檢查) ★★★ ====== */
+    function bindLiveValidation() {
+        
+        /* 通用：只要有變動就檢查導航按鈕狀態 */
+        $$('input, select').forEach(el => {
+            el.addEventListener('change', () => updateNavState());
+            el.addEventListener('input', () => updateNavState());
+        });
+
+        /* --- 個別欄位即時驗證 --- */
+
+        /* 1. Gmail 自動補全 + 格式檢查 */
+        const mailInput = $("#gmail");
+        if (mailInput) {
+            mailInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                if (val.endsWith('@') && !val.includes('@gmail.com')) {
+                    e.target.value = val + 'gmail.com';
+                }
+                /* 檢查是否包含 @gmail.com */
+                const isValid = e.target.value.includes("@gmail.com");
+                $("#errGmail").style.display = isValid ? "none" : "block";
+                updateNavState();
+            });
+        }
+
+        /* 2. 身分證字號 (10碼, 開頭英文) */
+        const nidInput = $("#nid");
+        if (nidInput) {
+            nidInput.addEventListener('input', (e) => {
+                /* 轉大寫 */
+                e.target.value = e.target.value.toUpperCase();
+                /* 正則：1碼英文 + 9碼數字 */
+                const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
+                $("#errNid").style.display = isValid ? "none" : "block";
+                updateNavState();
+            });
+        }
+
+        /* 3. 民國生日 (7碼數字) */
+        const birthInput = $("#birthRoc7");
+        if (birthInput) {
+            birthInput.addEventListener('input', (e) => {
+                const isValid = /^\d{7}$/.test(e.target.value);
+                $("#errBirthRoc7").style.display = isValid ? "none" : "block";
+                updateNavState();
+            });
+        }
+
+        /* 4. 手機 (09xx-xxx-xxx) - 您要求的即時錯誤 */
+        const mobileInput = $("#mobile");
+        if (mobileInput) {
+            mobileInput.addEventListener('input', (e) => {
+                /* 只要格式不對，紅字馬上出來 */
+                const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
+                $("#errMobile").style.display = isValid ? "none" : "block";
+                updateNavState();
+            });
+        }
+
+        /* 5. 上傳同意 (第4頁) */
+        $$('input[name="agreeUpload"]').forEach(r => {
+            r.addEventListener('change', (e) => {
+                const isNo = e.target.value === "no";
+                $("#errAgreeUpload").style.display = isNo ? "block" : "none";
+                updateNavState();
+            });
+        });
+
+        /* 6. 第一頁異議 */
+        $$('input[name="agree1"]').forEach(r => {
+            r.addEventListener('change', (e) => {
+                const isNo = e.target.value === "no";
+                $("#exitMsg1").classList.toggle("show", isNo);
+                updateNavState();
+            });
+        });
+
+        /* 提交按鈕 */
+        $("#btnSubmit")?.addEventListener("click", () => {
+            submitData();
+        });
     }
 
     /* === 檔案轉 Base64 === */
@@ -1194,28 +1221,22 @@
             reader.readAsDataURL(file);
             reader.onload = () => {
                 const base64 = reader.result.split(',')[1];
-                resolve({
-                    name: file.name,
-                    mimeType: file.type,
-                    base64: base64
-                });
+                resolve({ name: file.name, mimeType: file.type, base64: base64 });
             };
             reader.onerror = error => reject(error);
         });
     }
 
-    /* === 提交資料 (Webhook 模式) === */
+    /* === 提交資料 === */
     async function submitData() {
         const btn = $("#btnSubmit");
         if (!btn) return;
 
-        /* 鎖定按鈕避免重複點擊 */
         btn.textContent = "⏳ 資料傳送中...";
         btn.disabled = true;
 
-        /* 收集表單資料，type 用來讓 GAS 區分是新表單還是舊表單 */
         const payload = {
-            formType: "laborReport", /* ★ 新增：標記表單類型 */
+            formType: "laborReport",
             createdAt: FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : '',
             company:  $("#company").value,
             team:     $("#team").value,
@@ -1223,7 +1244,6 @@
             gmail:    $("#gmail").value,
             fullName: $("#fullName").value,
             gender:   $("#gender").value,
-            
             nid:      $("#nid").value,
             birthRoc7:$("#birthRoc7").value,
             mobile:   $("#mobile").value,
@@ -1231,81 +1251,43 @@
             addrHouse:  $("#addrHouse").value,
             addrLive:   $("#addrLive").value,
             
-            /* 檔案 */
-            fileFront: null,
-            fileBack: null,  /* 對應 idLaborCheck */
-            fileBank: null   /* 對應 idFoodCheck */
+            fileFront: null, fileBack: null, fileBank: null
         };
 
-        // 處理檔案
         try {
             const f1 = $("#idFront").files[0];
-            const f2 = $("#idLaborCheck").files[0]; // 其實是背面
-            const f3 = $("#idFoodCheck").files[0];  // 其實是存摺
+            const f2 = $("#idLaborCheck").files[0];
+            const f3 = $("#idFoodCheck").files[0];
 
             if (f1) payload.fileFront = await fileToBase64(f1);
             if (f2) payload.fileBack  = await fileToBase64(f2);
             if (f3) payload.fileBank  = await fileToBase64(f3);
 
-            // 發送 POST
             const response = await fetch(GAS_URL, {
                 method: "POST",
                 body: JSON.stringify(payload)
             });
-
             const res = await response.json();
 
             if (res.status === 'ok') {
-                showStep(7); /* 成功 -> 前往第 7 頁 */
-            } else if (res.status === 'duplicate') {
-                alert("❌ 提交失敗,你/妳已經填寫過...");
-                btn.textContent = "提交";
-                btn.disabled = false;
+                showStep(7);
             } else {
-                alert("❌ 錯誤," + (res.message || "未知原因"));
+                alert("❌ " + (res.status === 'duplicate' ? "你/妳已經填寫過..." : "錯誤: " + res.message));
                 btn.textContent = "提交";
                 btn.disabled = false;
             }
-
         } catch (err) {
-            alert("⚠️ 傳送失敗," + err + ",請聯繫人資承辦...");
+            alert("⚠️ 傳送失敗，請聯繫人資承辦...");
             console.error(err);
             btn.textContent = "提交";
             btn.disabled = false;
         }
     }
 
-    /* ====== 事件綁定 ====== */
-    function bindLiveValidation() {
-        /* Input 變動即時驗證 */
-        $$('input, select').forEach(el => {
-            el.addEventListener('change', () => updateNavState());
-            el.addEventListener('input', () => updateNavState());
-        });
-
-        /* ★★★ Gmail 自動補全 @gmail.com ★★★ */
-        const mailInput = $("#gmail");
-        if (mailInput) {
-            mailInput.addEventListener('input', (e) => {
-                const val = e.target.value;
-                if (val.endsWith('@') && !val.includes('@gmail.com')) {
-                    e.target.value = val + 'gmail.com';
-                }
-                updateNavState();
-            });
-        }
-
-        /* 提交按鈕 */
-        $("#btnSubmit")?.addEventListener("click", () => {
-            submitData();
-        });
-    }
-
     /* 高度調整 */
     function autoFitActionbarHeight() {
         const bar = $("#actionbar"); if (!bar) return;
-        const h = bar.offsetHeight;
-        document.documentElement.style.setProperty('--actionbar-h', `${h}px`);
+        document.documentElement.style.setProperty('--actionbar-h', `${bar.offsetHeight}px`);
     }
     (function observeBar() {
         const bar = $("#actionbar");
@@ -1324,7 +1306,7 @@
 
         $("#btnNext").addEventListener("click", () => {
             if (IS_LOCKED) return;
-            const ok = validatePage(currentPage, true);
+            const ok = validatePage(currentPage);
             if (ok && currentPage < TOTAL_STEPS) {
                 setUpdatedNow();
                 showStep(currentPage + 1);
@@ -1332,7 +1314,6 @@
         });
     }
 
-    /* ====== 初始化 ====== */
     document.addEventListener("DOMContentLoaded", () => {
         showStep(1);
         bindLiveValidation();
