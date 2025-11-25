@@ -7,6 +7,7 @@
 
     <style>
         :root {
+            /* -----------GAS部署網址再892行------------ */
             /* --------系統共用常數（可全站調整）-------- */
             --card-w: 980px;       /* 表單面板最大寬度（可調） */
             --radius: 16px;        /* 面板圓角（可調） */
@@ -769,11 +770,11 @@
                         <figcaption class="sample-cap">❌ 錯誤範例-格式沒錯但要直觀可看明白</figcaption>
                     </figure>
                     <figure class="sample-box">
-                        <img class="sample-img" src="https://mys0819.github.io/PIST/assets/證件錯誤範例-1.jpg" alt="❗️證件錯誤範例-1">
+                        <img class="sample-img" src="assets/證件錯誤範例-1.jpg" alt="❗️證件錯誤範例-1">
                         <figcaption class="sample-cap">❌ 錯誤範例-四角未對四個角</figcaption>
                     </figure>
                     <figure class="sample-box">
-                        <img class="sample-img" src="https://mys0819.github.io/PIST/assets/證件錯誤範例-2.jpg" alt="❗️證件錯誤範例-2">
+                        <img class="sample-img" src="assets/證件錯誤範例-2.jpg" alt="❗️證件錯誤範例-2">
                         <figcaption class="sample-cap">❌ 錯誤範例-四角未對四個角且有小手入鏡</figcaption>
                     </figure>
                 </div>
@@ -836,7 +837,7 @@
             </section>
 
             <section class="step" data-page="6" id="step-6">
-                <h2>　❗️資料送出前-核檢區</h2>
+                <h2>❗️資料送出前-核檢區</h2>
                 <div class="fieldset">
                     <div class="checks">
                         <label><input type="checkbox" id="preA"> 1. 以上輸入資料都進行雙重確認.</label>
@@ -889,7 +890,7 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     /* ★★★ GAS部署網址 WEBHOOK ★★★ */
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzydITCB9S3f60g2g-C-JpxxLa89YYi1qJ5mhxLVxUiC3BvAADJgNU4GUSNBBU3vuXL/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw9CUVtGk4OrN2T_fo9-nRh-cYTE9yQDJJg_S2JXXsiAVFVgk1JQy6PbrawwUMvGcuE/exec";
 
     /* 表單時間戳 */
     const FORM_META = { createdAt: null, updatedAt: null };
@@ -1135,23 +1136,35 @@
         
         /* 通用：只要有變動就檢查導航按鈕狀態 */
         $$('input, select').forEach(el => {
+            /* 這裡仍保留 change/input 更新按鈕，確保一填對按鈕就出來 */
             el.addEventListener('change', () => updateNavState());
             el.addEventListener('input', () => updateNavState());
         });
 
-        /* --- 個別欄位即時驗證 --- */
+        /* --- 個別欄位即時驗證 (修改為：Blur才顯示錯誤 / Input僅消除錯誤) --- */
 
         /* 1. Gmail 自動補全 + 格式檢查 */
         const mailInput = $("#gmail");
         if (mailInput) {
+            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
+            mailInput.addEventListener('blur', (e) => {
+                const isValid = e.target.value.includes("@gmail.com");
+                $("#errGmail").style.display = isValid ? "none" : "block";
+            });
+
+            /* ★★★ 修改：打字時只負責「修正」，若已修正則關閉紅字，但不主動報錯 ★★★ */
             mailInput.addEventListener('input', (e) => {
                 const val = e.target.value;
                 if (val.endsWith('@') && !val.includes('@gmail.com')) {
                     e.target.value = val + 'gmail.com';
                 }
-                /* 檢查是否包含 @gmail.com */
+                
                 const isValid = e.target.value.includes("@gmail.com");
-                $("#errGmail").style.display = isValid ? "none" : "block";
+                const errEl = $("#errGmail");
+                /* 如果目前顯示紅字，且使用者修對了，就馬上隱藏紅字 */
+                if (errEl.style.display === "block" && isValid) {
+                    errEl.style.display = "none";
+                }
                 updateNavState();
             });
         }
@@ -1159,12 +1172,22 @@
         /* 2. 身分證字號 (10碼, 開頭英文) */
         const nidInput = $("#nid");
         if (nidInput) {
+            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
+            nidInput.addEventListener('blur', (e) => {
+                const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
+                $("#errNid").style.display = isValid ? "none" : "block";
+            });
+
             nidInput.addEventListener('input', (e) => {
                 /* 轉大寫 */
                 e.target.value = e.target.value.toUpperCase();
-                /* 正則：1碼英文 + 9碼數字 */
+                
+                /* ★★★ 修改：打字時只負責「消除紅字」 ★★★ */
                 const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
-                $("#errNid").style.display = isValid ? "none" : "block";
+                const errEl = $("#errNid");
+                if (errEl.style.display === "block" && isValid) {
+                    errEl.style.display = "none";
+                }
                 updateNavState();
             });
         }
@@ -1172,25 +1195,45 @@
         /* 3. 民國生日 (7碼數字) */
         const birthInput = $("#birthRoc7");
         if (birthInput) {
-            birthInput.addEventListener('input', (e) => {
+            /* ★★★ 修改：離開欄位時才判斷 ★★★ */
+            birthInput.addEventListener('blur', (e) => {
                 const isValid = /^\d{7}$/.test(e.target.value);
                 $("#errBirthRoc7").style.display = isValid ? "none" : "block";
+            });
+
+            birthInput.addEventListener('input', (e) => {
+                const isValid = /^\d{7}$/.test(e.target.value);
+                const errEl = $("#errBirthRoc7");
+                /* ★★★ 修改：打字時只負責「消除紅字」 ★★★ */
+                if (errEl.style.display === "block" && isValid) {
+                    errEl.style.display = "none";
+                }
                 updateNavState();
             });
         }
 
-        /* 4. 手機 (09xx-xxx-xxx) - 您要求的即時錯誤 */
+        /* 4. 手機 (09xx-xxx-xxx) - 修正您提到的干擾問題 */
         const mobileInput = $("#mobile");
         if (mobileInput) {
-            mobileInput.addEventListener('input', (e) => {
-                /* 只要格式不對，紅字馬上出來 */
+            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
+            mobileInput.addEventListener('blur', (e) => {
+                /* 如果是空的先不顯示錯誤(看需求)，這裡預設還是檢查格式 */
                 const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
                 $("#errMobile").style.display = isValid ? "none" : "block";
+            });
+
+            mobileInput.addEventListener('input', (e) => {
+                /* ★★★ 修改：打字時只負責「消除紅字」，絕對不跳紅字 ★★★ */
+                const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
+                const errEl = $("#errMobile");
+                if (errEl.style.display === "block" && isValid) {
+                    errEl.style.display = "none";
+                }
                 updateNavState();
             });
         }
 
-        /* 5. 上傳同意 (第4頁) */
+        /* 5. 上傳同意 (第4頁) - 這是 Radio Button，原本就是點選才觸發，邏輯不用改 */
         $$('input[name="agreeUpload"]').forEach(r => {
             r.addEventListener('change', (e) => {
                 const isNo = e.target.value === "no";
@@ -1199,7 +1242,7 @@
             });
         });
 
-        /* 6. 第一頁異議 */
+        /* 6. 第一頁異議 - Radio Button 邏輯不用改 */
         $$('input[name="agree1"]').forEach(r => {
             r.addEventListener('change', (e) => {
                 const isNo = e.target.value === "no";
