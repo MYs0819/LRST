@@ -654,7 +654,7 @@
                 </div>
           
                 <div class="row">
-                    <label for="team">© 隸屬團隊 <small>⏍ 若不確定歸屬,請詢問面試主管後再行點選</small></label>
+                    <label for="team">© 隸屬團隊 <small>⏍ 若不確定團隊,請詢問面試主管後再行點選</small></label>
                     <select id="team" name="team">
                         <option value="" selected disabled>請選擇</option>
                         <option>外場-Serve Teams</option>
@@ -879,491 +879,405 @@
 
         <footer class="footer" id="footer">
             <img src="assets/MYs_logo_去背.png" alt="MYs Logo" class="footer-logo">
-            ︳© Copyright 2025 MYs System-b1.0.15-11/25~11/26
+            ︳© Copyright 2025 MYs System-b1.0.16-11/25~11/27
         </footer>
     </form>
 
 <script>
-    /* --------系統常數-------- */
-    const TOTAL_STEPS = 7;
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => document.querySelectorAll(sel);
+/* --------系統常數-------- */
+const TOTAL_STEPS = 7;
+/* ★★★ 請確認此處 GAS 網址是否為最新 ★★★ */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyncVzIPUAQ4U9Mx_ahlGX-wCFwVAIr9hyXYf7LIAhJ-kNwrwwCrzBA3fP4Litq_bQ/exec";
 
-    /* ★★★ GAS部署網址 WEBHOOK ★★★ */
-    const GAS_URL = "AKfycbyncVzIPUAQ4U9Mx_ahlGX-wCFwVAIr9hyXYf7LIAhJ-kNwrwwCrzBA3fP4Litq_bQ";
+const $  = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
 
-    /* 表單時間戳 */
-    const FORM_META = { createdAt: null, updatedAt: null };
-    function fmtTW(d) {
-        try {
-            return new Intl.DateTimeFormat('zh-TW', {
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                hour12: false, timeZone: 'Asia/Taipei'
-            }).format(d);
-        } catch (e) {
-            return d.toLocaleString();
-        }
-    }
+/* 表單時間戳 */
+const FORM_META = { createdAt: null, updatedAt: null };
+function fmtTW(d){
+  try{
+    return new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Taipei'}).format(d);
+  }catch(e){ return d.toLocaleString(); }
+}
+function setCreatedNow(){ if(!FORM_META.createdAt){ FORM_META.createdAt = new Date(); updateStampUI(); } }
+function setUpdatedNow(){ FORM_META.updatedAt = new Date(); updateStampUI(); }
+function updateStampUI(){
+  const c = $("#stampCreated"), u = $("#stampUpdated");
+  if(c){ c.textContent = FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : "—"; }
+  if(u){ u.textContent = FORM_META.updatedAt ? fmtTW(FORM_META.updatedAt) : "—"; }
+}
 
-    function setCreatedNow() {
-        if (!FORM_META.createdAt) {
-            FORM_META.createdAt = new Date();
-            updateStampUI();
-        }
-    }
+/* ====== 密碼進入遮罩 ====== */
+const PASSWORDS = ["MYsDC20251115", "MYsFZ20251115", "MYsSC20251115"];
+(function passGateInit(){
+  const gate = $("#passGate"), pwd = $("#gatePwd"), btn = $("#gatePwdStart"), err = $("#gatePwdErr");
+  const togglePwdButton = $("#togglePwdVisibility");
+  if (!gate) return;
 
-    function setUpdatedNow() {
-        FORM_META.updatedAt = new Date();
-        updateStampUI();
-    }
+  let isPasswordVisible = false;
+  togglePwdButton.addEventListener("click", () => {
+    isPasswordVisible = !isPasswordVisible;
+    pwd.type = isPasswordVisible ? "text" : "password";
+    togglePwdButton.textContent = isPasswordVisible ? "隱藏密碼" : "顯示密碼";
+  });
 
-    function updateStampUI() {
-        const c = $("#stampCreated"), u = $("#stampUpdated");
-        if (c) { c.textContent = FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : "—"; }
-        if (u) { u.textContent = FORM_META.updatedAt ? fmtTW(FORM_META.updatedAt) : "—"; }
-    }
+  err.style.display = "none";
+  btn.addEventListener("click", () => {
+    const v = (pwd.value || "").trim().toLowerCase();
+    const isValid = PASSWORDS.some(p => p.toLowerCase() === v);
+    if (!isValid) { err.style.display = "block"; return; }
+    err.style.display = "none";
+    gate.style.display = "none";
+    setCreatedNow();
+    autoFitActionbarHeight();
+  });
+})();
 
-    /* ====== 密碼進入遮罩 ====== */
-    const PASSWORDS = ["MYsDC404", "MYsFZ404", "MYsSC404"];
-    (function passGateInit() {
-        const gate = $("#passGate"),
-            pwd = $("#gatePwd"),
-            btn = $("#gatePwdStart"),
-            err = $("#gatePwdErr");
-        const togglePwdButton = $("#togglePwdVisibility");
-
-        if (!gate) return;
-
-        let isPasswordVisible = false;
-        togglePwdButton.addEventListener("click", () => {
-            isPasswordVisible = !isPasswordVisible;
-            pwd.type = isPasswordVisible ? "text" : "password";
-            togglePwdButton.textContent = isPasswordVisible ? "隱藏密碼" : "顯示密碼";
-        });
-
-        err.style.display = "none";
-        btn.addEventListener("click", () => {
-            const v = (pwd.value || "").trim().toLowerCase();
-            const isValid = PASSWORDS.some(pwd => pwd.toLowerCase() === v);
-
-            if (!isValid) {
-                err.style.display = "block";
-                return;
-            }
-
-            err.style.display = "none";
-            gate.style.display = "none";
-            setCreatedNow();
-            autoFitActionbarHeight();
-        });
-    })();
-
-    /* ====== 鍵盤與縮放控制 ====== */
-    (function keyboardLift() {
-        const vv = window.visualViewport;
-        if (!vv) return;
-        function apply() {
-            const bottomInset = (window.innerHeight - vv.height - vv.offsetTop);
-            document.documentElement.style.setProperty('--kv-offset', bottomInset > 0 ? `${bottomInset}px` : '0px');
-            if (bottomInset > 80) {
-                document.body.classList.add('kb-open');
-            } else {
-                document.body.classList.remove('kb-open');
-            }
-            autoFitActionbarHeight();
-        }
-        vv.addEventListener('resize', apply);
-        vv.addEventListener('scroll', apply);
-        window.addEventListener('resize', apply);
-        apply();
-    })();
-
-    /* 焦點自動可視 */
-    (function focusAutoScroll() {
-        document.addEventListener('focusin', (e) => {
-            const el = e.target;
-            if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLSelectElement)) return;
-            setTimeout(() => { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
-        });
-    })();
-
-    /* ====== 步驟顯示 ====== */
-    let currentPage = 1;
-    let IS_LOCKED = false;
-    function pad2(n) { return String(n).padStart(2, '0'); }
-    function pageIsPurple(n) { return [1, 7].includes(n); }
-
-    function updateHeaderStep() {
-        $("#headerStep").textContent = `第${pad2(currentPage)}頁/共${pad2(TOTAL_STEPS)}頁`;
-        const scheme = pageIsPurple(currentPage) ? "purple" : "black";
-        $(".container").setAttribute("data-scheme", scheme);
-    }
-
-    function lockAllAndHideNav() {
-        IS_LOCKED = true;
-        document.querySelectorAll('input, select, button, textarea').forEach(el => { el.disabled = true; });
-        const prev = $("#btnPrev"), next = $("#btnNext");
-        if (prev) { prev.style.display = "none"; }
-        if (next) { next.style.display = "none"; }
-    }
-
-    function showStep(pageNumber) {
-        if (IS_LOCKED && pageNumber !== TOTAL_STEPS) return;
-        $$(".step").forEach(s => s.classList.remove("active"));
-        const el = document.getElementById(`step-${pageNumber}`);
-        if (el) el.classList.add("active");
-        currentPage = pageNumber;
-        updateHeaderStep();
-        $("#content").scrollTo({ top: 0, behavior: "instant" });
-        updateNavState(); /* 換頁後立刻檢查按鈕狀態 */
-
-        if (pageNumber === TOTAL_STEPS) {
-            setUpdatedNow();
-            setTimeout(() => { lockAllAndHideNav(); updateNavState(); }, 0);
-        }
-    }
-
-    /* ====== 檔案預覽 ====== */
-    function bindFilePreview(inputId, txtId, thumbId) {
-        const input = $(inputId);
-        const txt = $(txtId);
-        const thumb = $(thumbId);
-
-        input?.addEventListener("change", () => {
-            const file = input.files[0];
-            if (!file) {
-                txt.textContent = "尚未選取檔案";
-                thumb.style.display = "none";
-                thumb.src = "";
-                return;
-            }
-            txt.textContent = file.name;
-            if (file.type === "application/pdf") {
-                thumb.src = "https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg";
-                thumb.style.display = "block";
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                thumb.src = e.target.result;
-                thumb.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-    bindFilePreview("#idFront", "#nameFrontTxt", "#thumbFront");
-    bindFilePreview("#idLaborCheck", "#nameLaborCheckTxt", "#thumbLaborCheck");
-    bindFilePreview("#idFoodCheck", "#nameFoodCheckTxt", "#thumbFoodCheck");
-
-    /* ====== 各頁驗證邏輯 ====== */
-    function validatePage(n) {
-        /* 這裡只回傳 true/false，不負責顯示紅字，紅字由 bindLiveValidation 負責 */
-        switch (n) {
-            case 1: {
-                const yes = $('input[name="agree1"][value="yes"]')?.checked;
-                return !!yes;
-            }
-            case 2: {
-                const a = $("#company").value !== "";
-                const b = $("#team").value !== "";
-                const c = $("#workType").value !== "";
-                const d = $("#gmail").value.includes("@gmail.com"); /* 簡易檢查 */
-                const e = $("#fullName").value.trim() !== "";
-                const f = $("#gender").value !== "";
-                return a && b && c && d && e && f;
-            }
-            case 3: {
-                const a = /^[A-Z][0-9]{9}$/.test($("#nid").value.toUpperCase()); /* 身分證正則 */
-                const b = /^\d{7}$/.test($("#birthRoc7").value); /* 7碼生日 */
-                const c = /^09\d{2}-\d{3}-\d{3}$/.test($("#mobile").value); /* 手機格式 */
-                const d = $("#birthPlace").value.trim() !== "";
-                const e = $("#addrHouse").value.trim() !== "";
-                const f = $("#addrLive").value.trim() !== "";
-                return a && b && c && d && e && f;
-            }
-            case 4: {
-                return $(`input[name="agreeUpload"][value="yes"]`).checked;
-            }
-            case 5: {
-                const f1 = $("#idFront").files.length > 0;
-                const f2 = $("#idLaborCheck").files.length > 0;
-                const f3 = $("#idFoodCheck").files.length > 0;
-                const checks = ["#fileChk1", "#fileChk2", "#fileChk3", "#fileChk4"].every(id => $(id).checked);
-                return f1 && f2 && f3 && checks;
-            }
-            case 6:
-                return ["#preA", "#preB", "#preC", "#preD", "#preE", "#preF"].every(id => $(id).checked);
-            case 7:
-                return true;
-        }
-        return false;
-    }
-
-    /* ====== 導航按鈕狀態 (控制下一頁出現/隱藏) ====== */
-    function updateNavState() {
-        const btnPrev = $("#btnPrev"), btnNext = $("#btnNext");
-        const onLast = currentPage === TOTAL_STEPS;
-        const isValid = validatePage(currentPage); /* 檢查當前頁面是否全對 */
-
-        /* 上一頁 */
-        if (btnPrev) {
-            btnPrev.disabled = IS_LOCKED || currentPage <= 1;
-            btnPrev.style.display = onLast ? "none" : "inline-block";
-        }
-
-        /* 下一頁 */
-        if (btnNext) {
-            if (currentPage === 6 || onLast) {
-                btnNext.style.display = "none"; /* 第6頁改用提交鈕，第7頁隱藏 */
-            } else {
-                /* ★★★ 關鍵：沒填好 -> 隱藏 (none)，填好 -> 出現 (inline-block) ★★★ */
-                btnNext.style.display = isValid ? "inline-block" : "none";
-            }
-        }
-
-        /* 第 6 頁提交按鈕 */
-        if (currentPage === 6) {
-            const btnSubmit = $("#btnSubmit");
-            if (btnSubmit) {
-                btnSubmit.disabled = !isValid; /* 提交按鈕維持禁用/啟用邏輯，不隱藏 */
-            }
-        }
-    }
-
-    /* ====== ★★★ 即時紅字驗證 (輸入當下就檢查) ★★★ ====== */
-    function bindLiveValidation() {
-        
-        /* 通用：只要有變動就檢查導航按鈕狀態 */
-        $$('input, select').forEach(el => {
-            /* 這裡仍保留 change/input 更新按鈕，確保一填對按鈕就出來 */
-            el.addEventListener('change', () => updateNavState());
-            el.addEventListener('input', () => updateNavState());
-        });
-
-        /* --- 個別欄位即時驗證 (修改為：Blur才顯示錯誤 / Input僅消除錯誤) --- */
-
-        /* 1. Gmail 自動補全 + 格式檢查 */
-        const mailInput = $("#gmail");
-        if (mailInput) {
-            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
-            mailInput.addEventListener('blur', (e) => {
-                const isValid = e.target.value.includes("@gmail.com");
-                $("#errGmail").style.display = isValid ? "none" : "block";
-            });
-
-            /* ★★★ 修改：打字時只負責「修正」，若已修正則關閉紅字，但不主動報錯 ★★★ */
-            mailInput.addEventListener('input', (e) => {
-                const val = e.target.value;
-                if (val.endsWith('@') && !val.includes('@gmail.com')) {
-                    e.target.value = val + 'gmail.com';
-                }
-                
-                const isValid = e.target.value.includes("@gmail.com");
-                const errEl = $("#errGmail");
-                /* 如果目前顯示紅字，且使用者修對了，就馬上隱藏紅字 */
-                if (errEl.style.display === "block" && isValid) {
-                    errEl.style.display = "none";
-                }
-                updateNavState();
-            });
-        }
-
-        /* 2. 身分證字號 (10碼, 開頭英文) */
-        const nidInput = $("#nid");
-        if (nidInput) {
-            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
-            nidInput.addEventListener('blur', (e) => {
-                const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
-                $("#errNid").style.display = isValid ? "none" : "block";
-            });
-
-            nidInput.addEventListener('input', (e) => {
-                /* 轉大寫 */
-                e.target.value = e.target.value.toUpperCase();
-                
-                /* ★★★ 修改：打字時只負責「消除紅字」 ★★★ */
-                const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
-                const errEl = $("#errNid");
-                if (errEl.style.display === "block" && isValid) {
-                    errEl.style.display = "none";
-                }
-                updateNavState();
-            });
-        }
-
-        /* 3. 民國生日 (7碼數字) */
-        const birthInput = $("#birthRoc7");
-        if (birthInput) {
-            /* ★★★ 修改：離開欄位時才判斷 ★★★ */
-            birthInput.addEventListener('blur', (e) => {
-                const isValid = /^\d{7}$/.test(e.target.value);
-                $("#errBirthRoc7").style.display = isValid ? "none" : "block";
-            });
-
-            birthInput.addEventListener('input', (e) => {
-                const isValid = /^\d{7}$/.test(e.target.value);
-                const errEl = $("#errBirthRoc7");
-                /* ★★★ 修改：打字時只負責「消除紅字」 ★★★ */
-                if (errEl.style.display === "block" && isValid) {
-                    errEl.style.display = "none";
-                }
-                updateNavState();
-            });
-        }
-
-        /* 4. 手機 (09xx-xxx-xxx) - 修正您提到的干擾問題 */
-        const mobileInput = $("#mobile");
-        if (mobileInput) {
-            /* ★★★ 修改：離開欄位時才判斷是否顯示紅字 ★★★ */
-            mobileInput.addEventListener('blur', (e) => {
-                /* 如果是空的先不顯示錯誤(看需求)，這裡預設還是檢查格式 */
-                const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
-                $("#errMobile").style.display = isValid ? "none" : "block";
-            });
-
-            mobileInput.addEventListener('input', (e) => {
-                /* ★★★ 修改：打字時只負責「消除紅字」，絕對不跳紅字 ★★★ */
-                const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
-                const errEl = $("#errMobile");
-                if (errEl.style.display === "block" && isValid) {
-                    errEl.style.display = "none";
-                }
-                updateNavState();
-            });
-        }
-
-        /* 5. 上傳同意 (第4頁) - 這是 Radio Button，原本就是點選才觸發，邏輯不用改 */
-        $$('input[name="agreeUpload"]').forEach(r => {
-            r.addEventListener('change', (e) => {
-                const isNo = e.target.value === "no";
-                $("#errAgreeUpload").style.display = isNo ? "block" : "none";
-                updateNavState();
-            });
-        });
-
-        /* 6. 第一頁異議 - Radio Button 邏輯不用改 */
-        $$('input[name="agree1"]').forEach(r => {
-            r.addEventListener('change', (e) => {
-                const isNo = e.target.value === "no";
-                $("#exitMsg1").classList.toggle("show", isNo);
-                updateNavState();
-            });
-        });
-
-        /* 提交按鈕 */
-        $("#btnSubmit")?.addEventListener("click", () => {
-            submitData();
-        });
-    }
-
-    /* === 檔案轉 Base64 === */
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const base64 = reader.result.split(',')[1];
-                resolve({ name: file.name, mimeType: file.type, base64: base64 });
-            };
-            reader.onerror = error => reject(error);
-        });
-    }
-
-    /* === 提交資料 === */
-    async function submitData() {
-        const btn = $("#btnSubmit");
-        if (!btn) return;
-
-        btn.textContent = "⏳ 資料傳送中,請勿關閉此介面...";
-        btn.disabled = true;
-
-        const payload = {
-            formType: "laborReport",
-            createdAt: FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : '',
-            company:  $("#company").value,
-            team:     $("#team").value,
-            workType: $("#workType").value,
-            gmail:    $("#gmail").value,
-            fullName: $("#fullName").value,
-            gender:   $("#gender").value,
-            nid:      $("#nid").value,
-            birthRoc7:$("#birthRoc7").value,
-            mobile:   $("#mobile").value,
-            birthPlace: $("#birthPlace").value,
-            addrHouse:  $("#addrHouse").value,
-            addrLive:   $("#addrLive").value,
-            
-            fileFront: null, fileBack: null, fileBank: null
+/* ====== 檔案轉 Base64 ====== */
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        if(!file) { resolve(null); return; }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve({ name: file.name, mimeType: file.type, base64: base64 });
         };
+        reader.onerror = error => reject(error);
+    });
+}
 
-        try {
-            const f1 = $("#idFront").files[0];
-            const f2 = $("#idLaborCheck").files[0];
-            const f3 = $("#idFoodCheck").files[0];
+/* ====== 提交資料 (勞報建檔) ====== */
+async function submitData() {
+    const btn = $("#btnSubmit");
+    if (!btn) return;
 
-            if (f1) payload.fileFront = await fileToBase64(f1);
-            if (f2) payload.fileBack  = await fileToBase64(f2);
-            if (f3) payload.fileBank  = await fileToBase64(f3);
+    const originalText = btn.textContent;
+    btn.textContent = "⏳ 資料傳送中...";
+    btn.disabled = true;
 
-            const response = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            const res = await response.json();
+    const payload = {
+        formType: "laborReport", /* ★★★ 關鍵：確保後端知道這是勞報 ★★★ */
+        createdAt: FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : '',
+        company:   $("#company").value,
+        team:      $("#team").value,
+        workType:  $("#workType").value,
+        gmail:     $("#gmail").value,
+        fullName:  $("#fullName").value,
+        gender:    $("#gender").value,
+        nid:       $("#nid").value,
+        birthRoc7: $("#birthRoc7").value,
+        mobile:    $("#mobile").value,
+        birthPlace:$("#birthPlace").value,
+        addrHouse: $("#addrHouse").value,
+        addrLive:  $("#addrLive").value,
+        fileFront: null, 
+        fileBack: null, 
+        fileBank: null
+    };
 
-            if (res.status === 'ok') {
-                showStep(7);
-            } else {
-                alert("❌ " + (res.status === 'duplicate' ? "提交失敗,你/妳已經填寫過..." : "錯誤: " + res.message));
-                btn.textContent = "提交";
-                btn.disabled = false;
-            }
-        } catch (err) {
-            alert("⚠️ 傳送失敗，請聯繫人資承辦...");
-            console.error(err);
-            btn.textContent = "提交";
+    try {
+        /* 對應 HTML 的 ID (請確認您的 HTML ID 是否為 idFront, idLaborCheck, idFoodCheck) */
+        /* 備註：因為後端 handleLaborReport 期待 fileFront, fileBack, fileBank */
+        /* 這裡將 HTML 的第2、3個檔案欄位對應過去 */
+        const f1 = $("#idFront").files[0];
+        const f2 = $("#idLaborCheck").files[0]; // 對應到 fileBack (身分證反面)
+        const f3 = $("#idFoodCheck").files[0];  // 對應到 fileBank (銀行存摺)
+
+        if (f1) payload.fileFront = await fileToBase64(f1);
+        if (f2) payload.fileBack  = await fileToBase64(f2);
+        if (f3) payload.fileBank  = await fileToBase64(f3);
+
+        const response = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+
+        if (res.status === 'ok') {
+            showStep(7); /* 成功 -> 跳至完成頁 */
+        } else {
+            alert("❌ " + (res.status === 'duplicate' ? "你/妳已經填寫過..." : "錯誤: " + res.message));
+            btn.textContent = originalText;
             btn.disabled = false;
         }
+    } catch (err) {
+        alert("⚠️ 傳送失敗，請聯繫人資承辦...");
+        console.error(err);
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
+}
 
-    /* 高度調整 */
-    function autoFitActionbarHeight() {
-        const bar = $("#actionbar"); if (!bar) return;
-        document.documentElement.style.setProperty('--actionbar-h', `${bar.offsetHeight}px`);
-    }
-    (function observeBar() {
-        const bar = $("#actionbar");
-        if (!bar || !('ResizeObserver' in window)) return;
-        const ro = new ResizeObserver(() => autoFitActionbarHeight());
-        ro.observe(bar);
-    })();
+/* ====== 鍵盤與縮放 ====== */
+(function keyboardLift(){
+  const vv = window.visualViewport;
+  if(!vv) return;
+  function apply(){
+    const bottomInset = (window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty('--kv-offset', bottomInset>0 ? `${bottomInset}px` : '0px');
+    if(bottomInset > 80){ document.body.classList.add('kb-open'); }
+    else { document.body.classList.remove('kb-open'); }
+    autoFitActionbarHeight();
+  }
+  vv.addEventListener('resize', apply);
+  vv.addEventListener('scroll', apply);
+  window.addEventListener('resize', apply);
+  apply();
+})();
 
-    /* ====== 導航按鈕 ====== */
-    function bindActionBar() {
-        $("#btnPrev").addEventListener("click", () => {
-            if (!IS_LOCKED && currentPage > 1) {
-                showStep(currentPage - 1);
-            }
-        });
+(function focusAutoScroll(){
+  document.addEventListener('focusin', (e)=>{
+    const el = e.target;
+    if(!(el instanceof HTMLInputElement) && !(el instanceof HTMLSelectElement)) return;
+    setTimeout(()=>{ el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 50);
+  });
+})();
 
-        $("#btnNext").addEventListener("click", () => {
-            if (IS_LOCKED) return;
-            const ok = validatePage(currentPage);
-            if (ok && currentPage < TOTAL_STEPS) {
-                setUpdatedNow();
-                showStep(currentPage + 1);
-            }
-        });
-    }
+/* ====== 驗證工具 ====== */
+let currentPage = 1;
+let IS_LOCKED = false;
+function pad2(n){ return String(n).padStart(2,'0'); }
+function pageIsPurple(n){ return [1, 7].includes(n); }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        showStep(1);
-        bindLiveValidation();
-        bindActionBar();
-        autoFitActionbarHeight();
-        updateStampUI();
+function updateHeaderStep(){
+  $("#headerStep").textContent = `第${pad2(currentPage)}頁/共${pad2(TOTAL_STEPS)}頁`;
+  const scheme = pageIsPurple(currentPage) ? "purple" : "black";
+  $(".container").setAttribute("data-scheme", scheme);
+}
+
+function lockAllAndHideNav(){
+  IS_LOCKED = true;
+  document.querySelectorAll('input, select, button, textarea').forEach(el=>{ el.disabled = true; });
+  const prev=$("#btnPrev"), next=$("#btnNext");
+  if(prev){ prev.style.display="none"; }
+  if(next){ next.style.display="none"; }
+}
+
+function showStep(pageNumber){
+  if(IS_LOCKED && pageNumber!==TOTAL_STEPS) return;
+  $$(".step").forEach(s=>s.classList.remove("active"));
+  const el = document.getElementById(`step-${pageNumber}`);
+  if(el) el.classList.add("active");
+  currentPage = pageNumber;
+  updateHeaderStep();
+  $("#content").scrollTo({ top: 0, behavior: "instant" });
+  updateNavState();
+
+  if(pageNumber===TOTAL_STEPS){
+    setUpdatedNow();
+    setTimeout(()=>{ lockAllAndHideNav(); updateNavState(); }, 0);
+  }
+}
+
+function bindFilePreview(inputId, txtId, thumbId) {
+    const input = $(inputId);
+    const txt = $(txtId);
+    const thumb = $(thumbId);
+    input?.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) {
+            txt.textContent = "尚未選取檔案";
+            thumb.style.display = "none"; thumb.src = "";
+            return;
+        }
+        txt.textContent = file.name;
+        if (file.type === "application/pdf") {
+            thumb.src = "https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg";
+            thumb.style.display = "block";
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            thumb.src = e.target.result;
+            thumb.style.display = "block";
+        };
+        reader.readAsDataURL(file);
     });
+}
+bindFilePreview("#idFront", "#nameFrontTxt", "#thumbFront");
+bindFilePreview("#idLaborCheck", "#nameLaborCheckTxt", "#thumbLaborCheck");
+bindFilePreview("#idFoodCheck", "#nameFoodCheckTxt", "#thumbFoodCheck");
+
+function validatePage(n) {
+    switch (n) {
+        case 1: return !!$('input[name="agree1"][value="yes"]')?.checked;
+        case 2: {
+            const a = $("#company").value !== "";
+            const b = $("#team").value !== "";
+            const c = $("#workType").value !== "";
+            const d = $("#gmail").value.includes("@gmail.com");
+            const e = $("#fullName").value.trim() !== "";
+            const f = $("#gender").value !== "";
+            return a && b && c && d && e && f;
+        }
+        case 3: {
+            const a = /^[A-Z][0-9]{9}$/.test($("#nid").value.toUpperCase());
+            const b = /^\d{7}$/.test($("#birthRoc7").value);
+            const c = /^09\d{2}-\d{3}-\d{3}$/.test($("#mobile").value);
+            const d = $("#birthPlace").value.trim() !== "";
+            const e = $("#addrHouse").value.trim() !== "";
+            const f = $("#addrLive").value.trim() !== "";
+            return a && b && c && d && e && f;
+        }
+        case 4: return $(`input[name="agreeUpload"][value="yes"]`).checked;
+        case 5: {
+            const f1 = $("#idFront").files.length > 0;
+            const f2 = $("#idLaborCheck").files.length > 0;
+            const f3 = $("#idFoodCheck").files.length > 0;
+            const checks = ["#fileChk1", "#fileChk2", "#fileChk3", "#fileChk4"].every(id => $(id).checked);
+            return f1 && f2 && f3 && checks;
+        }
+        case 6: return ["#preA", "#preB", "#preC", "#preD", "#preE", "#preF"].every(id => $(id).checked);
+        case 7: return true;
+    }
+    return false;
+}
+
+function updateNavState() {
+    const btnPrev = $("#btnPrev"), btnNext = $("#btnNext");
+    const onLast = currentPage === TOTAL_STEPS;
+    const isValid = validatePage(currentPage);
+
+    if (btnPrev) {
+        /* ★★★ 修正：第1頁不顯示上一頁 ★★★ */
+        if (currentPage <= 1 || onLast) {
+            btnPrev.style.display = "none";
+        } else {
+            btnPrev.style.display = "inline-block";
+            btnPrev.disabled = IS_LOCKED;
+        }
+    }
+
+    if (btnNext) {
+        if (currentPage === 6 || onLast) {
+            btnNext.style.display = "none"; 
+        } else {
+            btnNext.style.display = isValid ? "inline-block" : "none";
+        }
+    }
+
+    if (currentPage === 6) {
+        const btnSubmit = $("#btnSubmit");
+        if (btnSubmit) btnSubmit.disabled = !isValid;
+    }
+}
+
+function bindLiveValidation() {
+    $$('input, select').forEach(el => {
+        el.addEventListener('change', () => updateNavState());
+        el.addEventListener('input', () => updateNavState());
+    });
+    
+    const mailInput = $("#gmail");
+    if (mailInput) {
+        mailInput.addEventListener('blur', (e) => {
+            const isValid = e.target.value.includes("@gmail.com");
+            $("#errGmail").style.display = isValid ? "none" : "block";
+        });
+        mailInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.endsWith('@') && !val.includes('@gmail.com')) { e.target.value = val + 'gmail.com'; }
+            const isValid = e.target.value.includes("@gmail.com");
+            if($("#errGmail").style.display === "block" && isValid) $("#errGmail").style.display = "none";
+            updateNavState();
+        });
+    }
+
+    const nidInput = $("#nid");
+    if (nidInput) {
+        nidInput.addEventListener('blur', (e) => {
+            const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
+            $("#errNid").style.display = isValid ? "none" : "block";
+        });
+        nidInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+            const isValid = /^[A-Z][0-9]{9}$/.test(e.target.value);
+            if($("#errNid").style.display === "block" && isValid) $("#errNid").style.display = "none";
+            updateNavState();
+        });
+    }
+
+    const birthInput = $("#birthRoc7");
+    if (birthInput) {
+        birthInput.addEventListener('blur', (e) => {
+            const isValid = /^\d{7}$/.test(e.target.value);
+            $("#errBirthRoc7").style.display = isValid ? "none" : "block";
+        });
+        birthInput.addEventListener('input', (e) => {
+            const isValid = /^\d{7}$/.test(e.target.value);
+            if($("#errBirthRoc7").style.display === "block" && isValid) $("#errBirthRoc7").style.display = "none";
+            updateNavState();
+        });
+    }
+
+    const mobileInput = $("#mobile");
+    if (mobileInput) {
+        mobileInput.addEventListener('blur', (e) => {
+            const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
+            $("#errMobile").style.display = isValid ? "none" : "block";
+        });
+        mobileInput.addEventListener('input', (e) => {
+            const isValid = /^09\d{2}-\d{3}-\d{3}$/.test(e.target.value);
+            if($("#errMobile").style.display === "block" && isValid) $("#errMobile").style.display = "none";
+            updateNavState();
+        });
+    }
+
+    $$('input[name="agreeUpload"]').forEach(r => {
+        r.addEventListener('change', (e) => {
+            const isNo = e.target.value === "no";
+            $("#errAgreeUpload").style.display = isNo ? "block" : "none";
+            updateNavState();
+        });
+    });
+
+    $$('input[name="agree1"]').forEach(r => {
+        r.addEventListener('change', (e) => {
+            const isNo = e.target.value === "no";
+            $("#exitMsg1").classList.toggle("show", isNo);
+            updateNavState();
+        });
+    });
+
+    $("#btnSubmit")?.addEventListener("click", () => { submitData(); });
+}
+
+function autoFitActionbarHeight() {
+    const bar = $("#actionbar"); if (!bar) return;
+    document.documentElement.style.setProperty('--actionbar-h', `${bar.offsetHeight}px`);
+}
+(function observeBar() {
+    const bar = $("#actionbar");
+    if (!bar || !('ResizeObserver' in window)) return;
+    const ro = new ResizeObserver(() => autoFitActionbarHeight());
+    ro.observe(bar);
+})();
+
+function bindActionBar() {
+    $("#btnPrev").addEventListener("click", () => {
+        if (!IS_LOCKED && currentPage > 1) {
+            showStep(currentPage - 1);
+        }
+    });
+
+    $("#btnNext").addEventListener("click", () => {
+        if (IS_LOCKED) return;
+        const ok = validatePage(currentPage);
+        if (ok && currentPage < TOTAL_STEPS) {
+            setUpdatedNow();
+            showStep(currentPage + 1);
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    showStep(1);
+    bindLiveValidation();
+    bindActionBar();
+    autoFitActionbarHeight();
+    updateStampUI();
+});
 </script>
 </body>
 </html>
