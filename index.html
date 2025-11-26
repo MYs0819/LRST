@@ -7,8 +7,8 @@
 
     <style>
         :root {
-            /* -----------GAS部署網址再892行------------ */
-            /* --------系統共用常數（可全站調整）-------- */
+            /* -----------GAS部署網址再893行------------ */
+            /* --------系統共用常數（可調）-------- */
             --card-w: 980px;       /* 表單面板最大寬度（可調） */
             --radius: 16px;        /* 面板圓角（可調） */
             --border: #2a2a2a;     /* 邊框色（可調） */
@@ -24,7 +24,7 @@
             --content-size: 12px;  /* 密碼之確定、頁數、上下一頁（可調） */
             --footer-size: 12px;   /* 商標；版權（可調） */
 
-            /* --------全域字級控制變數（可自行調整）--------*/
+            /* --------全域字級控制變數（可調）--------*/
             --label-size: 15px;        /* 欄位標題字級（例如：公司名稱；可調） */
             --hint-size: 11px;         /* 小字提示（label small；可調） */
             --input-size: 14px;        /* 輸入框/選單內文字字級（可調） */
@@ -63,7 +63,7 @@
             /* 面板背景變數（由 data-* 控制） */
             --panel-bg: linear-gradient(0deg,rgba(43,37,37,1) 0%, rgba(0,0,0,1) 100%); /* 預設黑 */
 
-            /* --------第4頁：範例圖片尺寸/外觀（可自行調整）--------*/
+            /* --------第4頁：範例圖片尺寸/外觀（可調）--------*/
             --sample-gap: 10px;                  /* 圖片之間的間距（可調） */
             --sample-max-h: 180px;               /* 圖片最大高度（可調） */
             --sample-pad: 8px;                   /* 每張圖外框內距（可調） */
@@ -856,7 +856,7 @@
             <section class="step" data-page="7" id="step-7">
                 <h2>✅ 全數完成</h2>
                 <div class="fz-xs" style="text-align:center; line-height:1.8;">
-                    © 報到須知單
+                    © 勞報建檔表
                     <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;">
                     <div>❗️請截圖此畫面給承辦人</div>
                     <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;">
@@ -879,7 +879,7 @@
 
         <footer class="footer" id="footer">
             <img src="assets/MYs_logo_去背.png" alt="MYs Logo" class="footer-logo">
-            ︳© Copyright 2025 MYs System-b1.0.10-11-25~11-26
+            ︳© Copyright 2025 MYs System-b1.0.15-11/25~11/26
         </footer>
     </form>
 
@@ -890,7 +890,7 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     /* ★★★ GAS部署網址 WEBHOOK ★★★ */
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwptYsUxW572V-UjYzA-qDCVVbyWhIm-HRx-QNgKvMO2v2Y_tEtntXzKNWDHG_NM9Sk/exec";
+    const GAS_URL = "AKfycbyncVzIPUAQ4U9Mx_ahlGX-wCFwVAIr9hyXYf7LIAhJ-kNwrwwCrzBA3fP4Litq_bQ";
 
     /* 表單時間戳 */
     const FORM_META = { createdAt: null, updatedAt: null };
@@ -925,7 +925,7 @@
     }
 
     /* ====== 密碼進入遮罩 ====== */
-    const PASSWORDS = ["MYsDC20251115", "MYsFZ20251115", "MYsSC20251115"];
+    const PASSWORDS = ["MYsDC404", "MYsFZ404", "MYsSC404"];
     (function passGateInit() {
         const gate = $("#passGate"),
             pwd = $("#gatePwd"),
@@ -1056,7 +1056,7 @@
     bindFilePreview("#idLaborCheck", "#nameLaborCheckTxt", "#thumbLaborCheck");
     bindFilePreview("#idFoodCheck", "#nameFoodCheckTxt", "#thumbFoodCheck");
 
-    /* ====== ★★★ 各頁驗證邏輯 (檢查用) ★★★ ====== */
+    /* ====== 各頁驗證邏輯 ====== */
     function validatePage(n) {
         /* 這裡只回傳 true/false，不負責顯示紅字，紅字由 bindLiveValidation 負責 */
         switch (n) {
@@ -1275,7 +1275,7 @@
         const btn = $("#btnSubmit");
         if (!btn) return;
 
-        btn.textContent = "⏳ 資料傳送中...";
+        btn.textContent = "⏳ 資料傳送中,請勿關閉此介面...";
         btn.disabled = true;
 
         const payload = {
@@ -1315,7 +1315,7 @@
             if (res.status === 'ok') {
                 showStep(7);
             } else {
-                alert("❌ " + (res.status === 'duplicate' ? "你/妳已經填寫過..." : "錯誤: " + res.message));
+                alert("❌ " + (res.status === 'duplicate' ? "提交失敗,你/妳已經填寫過..." : "錯誤: " + res.message));
                 btn.textContent = "提交";
                 btn.disabled = false;
             }
