@@ -604,7 +604,7 @@
                 <label for="gatePwd">請輸入金鑰🔑</label>
                 <input id="gatePwd" type="password" placeholder="請輸入密碼" />
                 <button type="button" id="togglePwdVisibility">顯示密碼</button>
-                <div class="error" id="gatePwdErr">❌ 密碼錯誤,請再試一次</div>
+                <div class="error" id="gatePwdErr">❌ 密碼錯誤，請再試一次</div>
             </div>
             <div class="gate-actions">
                 <button class="btn" id="gatePwdStart" type="button">確定</button>
@@ -636,7 +636,7 @@
                         <label class="fz-note"><input type="radio" name="agree1" value="yes"> 了解</label>
                         <label class="fz-note"><input type="radio" name="agree1" value="no"> 有異議</label>
                     </div>
-                    <div class="exit fz-xs" id="exitMsg1">🚨 若有疑問,可詢問人資承辦...</div>
+                    <div class="exit fz-xs" id="exitMsg1">🚨 若有疑問，可詢問人資承辦</div>
 
                 </div>
             </section>
@@ -667,7 +667,7 @@
                 </div>
           
                 <div class="row">
-                    <label for="workType">© 工作型態 <small>⏍ 若不確定部門,請詢問面試主管後再行點選</small></label>
+                    <label for="workType">© 工作型態 <small>⏍ 若不確定型態,請詢問面試主管後再行點選</small></label>
                     <select id="workType" name="workType">
                         <option value="" selected disabled>請選擇</option>
                         <option>正職/全時工時-Full Time</option>
@@ -748,9 +748,9 @@
                     <figure class="sample-box">
                         <video class="sample-img" controls playsinline style="max-height:220px; width:100%; object-fit:contain;">
                             <source src="assets/ios掃描範例.mp4" type="video/mp4">
-                            ❌ 您的裝置不支援影片播放
+                            ❌ 你/妳的裝置不支援影片播放
                         </video>
-                        <figcaption class="sample-cap">📹 iPhone 備忘錄掃描文件操作示範</figcaption>
+                        <figcaption class="sample-cap">📹 iPhone備忘錄掃描文件操作示範</figcaption>
                     </figure>
 
                     <figure class="sample-box">
@@ -831,7 +831,7 @@
                         <label><input type="checkbox" id="fileChk4"> 4. 上述都已確認完成動作</label>
                     </div>
                     <div class="note-list" style="margin-left:0;">
-                        📣 如須上傳PDF檔,請先轉成JPG檔後再上傳.
+                        📣 如須上傳PDF檔，請先轉成JPG檔後再上傳
                     </div>
                 </div>
             </section>
@@ -860,7 +860,7 @@
                     <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;">
                     <div>❗️請截圖此畫面給承辦人</div>
                     <hr style="border:0;border-top:1px solid var(--border);margin:10px 0;">
-                    <div>系統已收到資料,將進入處理排程.</div>
+                    <div>系統已收到資料，將進入處理排程</div>
                     <div style="margin-top:10px;color:var(--muted);font-size:11px;">
                         建立時間：<span id="stampCreated">—</span>　提交時間：<span id="stampUpdated">—</span>
                     </div>
@@ -879,7 +879,7 @@
 
         <footer class="footer" id="footer">
             <img src="assets/MYs_logo_去背.png" alt="MYs Logo" class="footer-logo">
-            ︳© Copyright 2025 MYs System-b1.0.17-11/25~11/27
+            ︳© Copyright 2025 MYs System-b1.0.18-11/25~11/27
         </footer>
     </form>
 
@@ -953,11 +953,11 @@ async function submitData() {
     if (!btn) return;
 
     const originalText = btn.textContent;
-    btn.textContent = "⏳ 資料傳送中,請勿關閉阿...";
+    btn.textContent = "⏳ 資料傳送中，請稍後，請勿退出此介面";
     btn.disabled = true;
 
     const payload = {
-        formType: "laborReport", /* ★★★ 關鍵：確保後端知道這是勞報 ★★★ */
+        formType: "laborReport", /* 確保後端知道這是勞報 */
         createdAt: FORM_META.createdAt ? fmtTW(FORM_META.createdAt) : '',
         company:   $("#company").value,
         team:      $("#team").value,
@@ -1002,7 +1002,7 @@ async function submitData() {
             btn.disabled = false;
         }
     } catch (err) {
-        alert("⚠️ 傳送失敗，請聯繫人資承辦...");
+        alert("⚠️ 傳送失敗，請聯繫人資承辦");
         console.error(err);
         btn.textContent = originalText;
         btn.disabled = false;
