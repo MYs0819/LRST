@@ -879,7 +879,7 @@
 
         <footer class="footer" id="footer">
             <img src="assets/MYs_logo_去背.png" alt="MYs Logo" class="footer-logo">
-            ︳© Copyright 2025 MYs System-b1.0.20-11/25~11/27
+            ︳© Copyright 2025 MYs System-b1.0.21-11/25~11/28
         </footer>
     </form>
 
@@ -908,7 +908,7 @@ function updateStampUI(){
 }
 
 /* ====== 密碼進入遮罩 ====== */
-const PASSWORDS = ["MYsDC404", "MYsFZ404", "MYsSC404", "0404];
+const PASSWORDS = ["MYsDC404", "MYsFZ404", "MYsSC404", "0404"];
 (function passGateInit(){
   const gate = $("#passGate"), pwd = $("#gatePwd"), btn = $("#gatePwdStart"), err = $("#gatePwdErr");
   const togglePwdButton = $("#togglePwdVisibility");
@@ -1143,7 +1143,7 @@ function updateNavState() {
     const isValid = validatePage(currentPage);
 
     if (btnPrev) {
-        /* ★★★ 第1頁不顯示上一頁 ★★★ */
+        /* 第1頁不顯示上一頁 */
         if (currentPage <= 1 || onLast) {
             btnPrev.style.display = "none";
         } else {
