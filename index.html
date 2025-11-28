@@ -879,7 +879,7 @@
 
         <footer class="footer" id="footer">
             <img src="assets/MYs_logo_去背.png" alt="MYs Logo" class="footer-logo">
-            ︳© Copyright 2025 MYs System-b1.0.23-11/25~11/28
+            ︳© Copyright 2025 MYs System-b1.0.24-11/25~11/28
         </footer>
     </form>
 
@@ -1040,8 +1040,8 @@ let IS_LOCKED = false;
 function pad2(n){ return String(n).padStart(2,'0'); }
 function pageIsPurple(n){ return [1, 7].includes(n); }
     
-/* 指定頁為紫色：1, 4 ；其餘黑色 */
-function pageIsPurple(n) { return [1, 4,].includes(n); }
+/* 指定頁為紫色：1, 4, 8 ；其餘黑色 */
+function pageIsPurple(n) { return [1, 4, 8].includes(n); }
     
 function updateHeaderStep(){
   $("#headerStep").textContent = `第${pad2(currentPage)}頁/共${pad2(TOTAL_STEPS)}頁`;
